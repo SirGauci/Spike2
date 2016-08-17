@@ -3,22 +3,34 @@
 
 #include "stdafx.h"
 #include <iostream>
+#include <sstream>
 #include <string>
+#include <Windows.h>
 #include "Grid.h"
 #include "Player.h"
+#include <thread>
 
-int main()
+void Timer(Player *p, std::string input)
 {
-	Grid* grid = new Grid();
-	Player* p = new Player(*grid);
-	char command;
-	// Game loop
+	int time = 0;
 	do
 	{
-		std::cout << "Enter directon: ";
-		std::cin >> command;
+		time++;
+		std::cout << "Time: " << time << " seconds" << "\nEnter direction:\n";
+		Sleep(1000);
+		system("cls");
+	} while ((p->GetCell() != 'D' && p->GetCell() != 'G') && input != "q");
+}
+
+void CommandProcessor(Player *p, std::string input)
+{
+	char command;
+	do
+	{
+		std::getline(std::cin, input);
+		command = input[0];
 		command = tolower(command);
-		if (command == 'e' || command == 's' || command == 'w' || command == 'n')
+		if (command == 'n' || command == 's' || command == 'w' || command == 'e')
 		{
 			p->Move(command);
 		}
@@ -31,16 +43,27 @@ int main()
 			std::cout << "Invalid command\n";
 		}
 	} while ((p->GetCell() != 'D' && p->GetCell() != 'G') && command != 'q');
-	// End game
+}
+
+int main()
+{
+	Grid* grid = new Grid();
+	Player* p = new Player(*grid);
+	std::string input;
+	std::thread inputThread(CommandProcessor, p, input);
+
+	Timer(p, input);
+
 	if (p->GetCell() == 'D')
 	{
 		std::cout << "Arrrrgh.... you've fallen down a pit.\nYOU HAVE DIED!\nThanks for playing. Maybe next time.";
 	}
-	else if (command != 'q')
+	else if (input != "q")
 	{
 		std::cout << "Wow... you've discovered a large chest filled with GOLD coins\nYOU WIN!\nThanks for playing. There probably won't be a next time.";
 	}
-	std::cin >> command;
+
+	inputThread.detach();
+
 	return 0;
 }
-
